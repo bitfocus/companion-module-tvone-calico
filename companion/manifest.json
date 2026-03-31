@@ -1,0 +1,27 @@
+{
+	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
+	"id": "calico",
+	"name": "calico",
+	"shortname": "CALICO Control",
+	"description": "Basic control for tvONE CALICO products",
+	"version": "0.0.0",
+	"license": "MIT",
+	"repository": "git+https://github.com/bitfocus/companion-module-tvone-calico.git",
+	"bugs": "https://github.com/bitfocus/companion-module-tvone-calico/issues",
+	"maintainers": [
+		{
+			"name": "DC-tvone",
+			"email": "darren.carson@tvone.com"
+		}
+	],
+	"runtime": {
+		"type": "node22",
+		"api": "nodejs-ipc",
+		"apiVersion": "0.0.0",
+		"entrypoint": "../dist/main.js"
+	},
+	"legacyIds": [],
+	"manufacturer": "tvONE",
+	"products": ["calico"],
+	"keywords": []
+}
