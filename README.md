@@ -1,4 +1,4 @@
-# companion-module-[replace with module name]
+# companion-module-tvone-calico
 
 A companion module for controlling a tvONE CALICO device using the REST API.
 
