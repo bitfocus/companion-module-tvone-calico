@@ -830,24 +830,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"calico@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "calico@workspace:."
-  dependencies:
-    "@companion-module/base": "npm:~1.14.1"
-    "@companion-module/tools": "npm:^2.6.1"
-    "@types/node": "npm:^22.19.3"
-    eslint: "npm:^9.39.2"
-    fetch: "npm:^1.1.0"
-    husky: "npm:^9.1.7"
-    lint-staged: "npm:^16.2.7"
-    prettier: "npm:^3.7.4"
-    rimraf: "npm:^6.1.2"
-    typescript: "npm:~5.9.3"
-    typescript-eslint: "npm:^8.51.0"
-  languageName: unknown
-  linkType: soft
-
 "callsites@npm:^3.0.0":
   version: 3.1.0
   resolution: "callsites@npm:3.1.0"
@@ -966,6 +948,24 @@ __metadata:
   checksum: 10c0/74c781a5248c2402a0a3e966a0a2bba3c054aad144f5c023364be83265e796b20565aa9feff624132ff629aa64e16999fa40a743c10c12f7c61e96a794b99288
   languageName: node
   linkType: hard
+
+"companion-module-tvone-calico@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "companion-module-tvone-calico@workspace:."
+  dependencies:
+    "@companion-module/base": "npm:~1.14.1"
+    "@companion-module/tools": "npm:^2.6.1"
+    "@types/node": "npm:^22.19.3"
+    eslint: "npm:^9.39.2"
+    fetch: "npm:^1.1.0"
+    husky: "npm:^9.1.7"
+    lint-staged: "npm:^16.2.7"
+    prettier: "npm:^3.7.4"
+    rimraf: "npm:^6.1.2"
+    typescript: "npm:~5.9.3"
+    typescript-eslint: "npm:^8.51.0"
+  languageName: unknown
+  linkType: soft
 
 "concat-map@npm:0.0.1":
   version: 0.0.1

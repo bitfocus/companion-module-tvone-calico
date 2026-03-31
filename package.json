@@ -1,5 +1,5 @@
 {
-	"name": "calico",
+	"name": "companion-module-tvone-calico",
 	"version": "1.0.0",
 	"main": "dist/main.js",
 	"type": "module",
