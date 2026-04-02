@@ -30,6 +30,10 @@ export class CalicoAPI extends EventEmitter {
 	private websocket!: WebSocket
 	private isConnected: boolean
 
+	public static canvasBaseApiPath: string = '/routing/canvases/'
+	public static storyboardBaseApiPath: string = '/routing/storyboards/'
+	public static windowBaseApiPath: string = '/routing/windows/'
+
 	constructor(module: ModuleInstance) {
 		super()
 		this.module = module
@@ -117,7 +121,13 @@ export class CalicoAPI extends EventEmitter {
 		}
 	}
 
-	public async SendREST(url: URL, method: string, body?: string): Promise<void> {
+	public async SendREST(httpMode: string, host: string, path: string, method: string, body?: string): Promise<void> {
+		const cleanPath = path.replace(/\/$/, '')
+		this.module.log('debug', `Clean Path ${cleanPath}`)
+
+		const url = new URL(`${httpMode}://${host}/api/v1${cleanPath}`)
+		this.module.log('debug', `Send URL ${url}`)
+
 		const request = new Request(url, {
 			method: method,
 			headers: {

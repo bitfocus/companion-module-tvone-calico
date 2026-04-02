@@ -17,6 +17,8 @@ A companion module for controlling a tvONE CALICO device using the REST API.
 - **Canvas Video Mute:** Mute or un-mute video for specified canvas (muted video black)
 - **Execute preset (CALICO preset):** Execute a preset on the device by specifying the preset number
 - **Switch Window Source:** Change the source of a window
+- **Generic Property:** Set any property of any API resource. See [Using Generic Property and Command actions](#using-generic-property-and-command-actions)
+- **Generic Command:** Run any API command resource. See [Using Generic Property and Command actions](#using-generic-property-and-command-actions)
 
 #### Feedbacks
 
@@ -47,3 +49,40 @@ There are a number of presets included to help get you started. Each preset has 
 - **Mute Video**
 - **Execute Preset (that is a CALICO preset)**
 - **Switch Window Source**
+
+### Using Generic Property and Command actions
+
+Using the generic property and command actions it is possible to set any property on any resource supported by the CALICO REST API.
+
+The specification for the REST API can be found here: [CALICO REST API](https://api.tvone.com/products/c7-series/c7-pro-2200/rest_api.html)
+
+#### Generic Property
+
+You can set any resource property using a REST PUT command by specifing the API path and the properties to send.
+
+This action requires 2 parameters:
+
+1. **API path**
+   - Full path to the resource (as described in the REST API spec)
+   - For example, to set Window properties the API path is `/routing/windows/window1`
+2. **Properties**
+   - Properties are formatted as JSON objects
+   - All available properties for a resource are list in the REST API spec
+   - For example, the available windows properties are listed [here](https://api.tvone.com/products/c7-series/c7-pro-2200/rest_api.html#/Windows/put_routing_windows__windowId_)
+   - An example of setting the width and height of Window1 is a follows:
+     - ```json
+       { "Width": 3840, "Height": 2160 }
+       ```
+
+#### Generic Command
+
+You can send any command (REST POST) by specifing the API path and, optionally, the command parameters.
+
+This action requires 1 parameters and 1 optional parameter:
+
+1. **API path**
+   - Full path to the resource (as described in the REST API spec)
+   - For example, to restart the device, the API path is `/system/restart`
+2. **(Optional) Paramters**
+   - If a command requires parameters, they a specified here as JSON array
+   - Not commands do not require parameters and the ones that do a re described in the REST API spec

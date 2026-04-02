@@ -23,7 +23,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 			],
 			callback: (feedback) => {
 				const val = self.getVariableValue(`${String(feedback.options.canvas).toLowerCase()}_mute_audio`) as boolean
-				self.log('debug', `Check feedback: Canvas audio mute [${feedback.options.canvas}] [${val}]`)
+				self.log('debug', `Check feedback: [${feedback.options.canvas} ${feedback.feedbackId}] [${val}]`)
 
 				return val ?? false
 			},
@@ -48,7 +48,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 			],
 			callback: (feedback) => {
 				const val = self.getVariableValue(`${String(feedback.options.canvas).toLowerCase()}_mute_video`) as boolean
-				self.log('debug', `Check feedback: Canvas video mute [${feedback.options.canvas}] [${val}]`)
+				self.log('debug', `Check feedback: [${feedback.options.canvas} ${feedback.feedbackId}] [${val}]`)
 
 				return val ?? false
 			},

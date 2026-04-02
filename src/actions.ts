@@ -5,6 +5,7 @@ export function UpdateActions(self: ModuleInstance): void {
 	self.setActionDefinitions({
 		preset_execute: {
 			name: 'Execute preset',
+			description: 'Execute a preset on the CALICO device',
 			options: [
 				{
 					id: 'presetID',
@@ -13,7 +14,7 @@ export function UpdateActions(self: ModuleInstance): void {
 					description: 'Enter the number of the preset',
 					default: 1,
 					min: 1,
-					max: 500,
+					max: 1000,
 				},
 			],
 			callback: async (event) => {
@@ -27,6 +28,7 @@ export function UpdateActions(self: ModuleInstance): void {
 		},
 		switch_window_source: {
 			name: 'Switch Window Source',
+			description: 'Switch the source for a Window',
 			options: [
 				{
 					id: 'window',
@@ -69,7 +71,7 @@ export function UpdateActions(self: ModuleInstance): void {
 				},
 			],
 			callback: async (event) => {
-				self.log('info', 'Canvas mute audio: ' + event.options.canvas)
+				self.log('info', `Canvas mute audio: ${event.options.canvas} ${event.id}`)
 
 				const canvasName = CanvasNames[String(event.options.canvas).toLowerCase() as keyof typeof CanvasNames]
 
@@ -110,6 +112,53 @@ export function UpdateActions(self: ModuleInstance): void {
 				} else {
 					self.log('error', `Canvas name not supported (${event.options.canvas})`)
 				}
+			},
+		},
+		generic_property_set: {
+			name: 'Generic Property',
+			description: 'Set any property on any reasource supported by the REST API',
+			options: [
+				{
+					id: 'apiPath',
+					type: 'textinput',
+					label: 'API path',
+					required: true,
+					description: 'API resource path. For example, /routing/windows/window1',
+				},
+				{
+					id: 'jsonData',
+					type: 'textinput',
+					label: 'Properties',
+					required: true,
+					description: 'JSON object with properties to update, for example, { "Width" : 3840 }',
+				},
+			],
+			callback: async (event) => {
+				self.log('info', 'Generic property set: ' + event.options.apiPath + ' with data ' + event.options.jsonData)
+				await self.calico?.genericPropertySet(event.options.apiPath as string, event.options.jsonData as string)
+			},
+		},
+		generic_execute_command: {
+			name: 'Generic Command',
+			description: 'Send any command (POST) supported by the REST API',
+			options: [
+				{
+					id: 'apiPath',
+					type: 'textinput',
+					label: 'API path',
+					required: true,
+					description: 'API resource path. For example, /routing/storyboards/Storyboard1/Take',
+				},
+				{
+					id: 'jsonData',
+					type: 'textinput',
+					label: 'Parameters',
+					description: '(Optional) JSON array with command parameters',
+				},
+			],
+			callback: async (event) => {
+				self.log('info', 'Generic property set: ' + event.options.apiPath + ' with data ' + event.options.jsonData)
+				await self.calico?.genericCommandExecute(event.options.apiPath as string, event.options.jsonData as string)
 			},
 		},
 	})

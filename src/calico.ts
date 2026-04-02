@@ -1,35 +1,20 @@
 import { CalicoAPI, CalicoEvent, CanvasEventTypes, CanvasNames, CanvasPropertyChangedEventData } from './calico_api.js'
+import { Canvas, CanvasData } from './canvas.js'
 import { ModuleInstance } from './main.js'
 import { InstanceStatus, type CompanionVariableValues } from '@companion-module/base'
 
-export type CanvasData = {
-	id: string
-	value: Canvas
-}
-
-type CanvasValue = {
-	FullName: string
-	StbdCurrent: string
-	AudioMute: boolean
-	AudioVolume: number
-	CutToBlack: boolean
-}
-
-class Canvas implements CanvasValue {
-	FullName: string = ''
-	StbdCurrent: string = ''
-	AudioMute: boolean = false
-	AudioVolume: number = 0
-	CutToBlack: boolean = false
-}
-
 export class Calico {
-	canvas!: CanvasData
 	private calicoAPI: CalicoAPI
 	private module: ModuleInstance
+	private canvases: Array<CanvasData> = []
 
 	constructor(module: ModuleInstance) {
 		this.module = module
+
+		this.canvases.push({ id: 'canvas1', value: new Canvas('Canvas1') })
+		this.canvases.push({ id: 'canvas2', value: new Canvas('Canvas2') })
+		this.canvases.push({ id: 'canvas3', value: new Canvas('Canvas3') })
+		this.canvases.push({ id: 'canvas4', value: new Canvas('Canvas4') })
 
 		this.calicoAPI = new CalicoAPI(this.module)
 		this.calicoAPI.on('message', (message) => this.handleCalicoMessage(message))
@@ -48,7 +33,7 @@ export class Calico {
 						const data = message.data as CanvasPropertyChangedEventData
 						this.module.log('info', `Canvas PROPERTY_CHANGED event: ${data.canvas} ${data.propertyName} ${data.value}`)
 
-						this.updateCanvasProperties(data.propertyName, data.value)
+						this.updateCanvasProperties(data.canvas, data.propertyName, data.value)
 						const canvasName = CanvasNames[String(data.canvas).toLowerCase() as keyof typeof CanvasNames]
 						this.updateCanvasVariables(canvasName)
 						this.module.checkFeedbacks('canvasaudiomute', 'canvasvideomute')
@@ -73,7 +58,13 @@ export class Calico {
 				await this.calicoAPI.disconnect()
 			}
 			await this.calicoAPI.connect()
-			await this.updateCanvas(CanvasNames.canvas1)
+
+			for (const c of this.canvases) {
+				const canvasName = CanvasNames[String(c.id).toLowerCase() as keyof typeof CanvasNames]
+				await this.updateCanvas(canvasName)
+			}
+
+			this.module.checkFeedbacks()
 		} catch (err) {
 			this.module.log('error', `Unable to connect to device: ${err}`)
 		}
@@ -93,45 +84,68 @@ export class Calico {
 		return false
 	}
 
-	public async updateCanvas(canvasName: CanvasNames): Promise<boolean> {
-		return await this.calicoAPI
+	public async updateCanvas(canvasName: CanvasNames): Promise<void> {
+		if (!(canvasName in CanvasNames)) {
+			return
+		}
+
+		await this.calicoAPI
 			.GetREST(
 				new URL(`${this.module.config.httpMode}://${this.module.config.host}/api/v1/routing/canvases/${canvasName}`),
 			)
 			.then((c) => {
-				this.canvas = c as CanvasData
+				const responseData = c as CanvasData
+				const canvas = this.canvases.find((c) => c.id.toLowerCase() == responseData.id.toLowerCase())
+				if (canvas) {
+					canvas.value = responseData.value
+					this.module.log('debug', `Canvas Data: ${canvas.value.toString()}`)
+				}
+
 				this.updateCanvasVariables(canvasName)
-				return true
 			})
 			.catch((err) => {
 				this.module.log('error', `Update canvas failed: ${err}`)
-				return false
 			})
 	}
 
-	private updateCanvasProperties(propertyName: string, value: string): void {
-		switch (propertyName) {
-			case 'AudioMute':
-			case 'CutToBlack':
-				Reflect.set(this.canvas.value, propertyName, value == 'On')
-				break
-			case 'AudioVolume':
-				Reflect.set(this.canvas.value, propertyName, Number(value))
-				break
-			default:
-				Reflect.set(this.canvas.value, propertyName, value)
-				break
+	private updateCanvasProperties(canvasId: string, propertyName: string, value: string): void {
+		const canvas = this.canvases.find((c) => c.id.toLowerCase() == canvasId.toLowerCase())
+
+		if (canvas) {
+			switch (propertyName) {
+				case 'AudioMute':
+				case 'CutToBlack':
+					Reflect.set(canvas.value, propertyName, value == 'On')
+					break
+				case 'AudioVolume':
+					Reflect.set(canvas.value, propertyName, Number(value))
+					break
+				default:
+					Reflect.set(canvas.value, propertyName, value)
+					break
+			}
+
+			this.module.log('debug', `New Canvas values: ${JSON.stringify(canvas.value)}`)
 		}
-		this.module.log('debug', `New Canvas values: ${JSON.stringify(this.canvas.value)}`)
+
+		this.module.log('debug', `No canvas found (${canvasId})`)
 	}
 
 	private updateCanvasVariables(canvasName: CanvasNames): void {
-		this.module.log('info', `updateCanvasVariables: ${this.canvas.value.AudioMute} ${this.canvas.value.CutToBlack}`)
-		const variables: CompanionVariableValues = {}
-		variables[`${canvasName}_mute_audio`] = this.canvas.value.AudioMute
-		variables[`${canvasName}_mute_video`] = this.canvas.value.CutToBlack
+		const canvas = this.canvases.find((c) => c.id.toLowerCase() == canvasName.toLowerCase())
 
-		this.module.setVariableValues(variables)
+		if (canvas) {
+			this.module.log(
+				'info',
+				`updateCanvasVariables: ${canvas.id} ${canvas.value.AudioMute} ${canvas.value.CutToBlack}`,
+			)
+
+			const variables: CompanionVariableValues = {}
+			variables[`${canvasName}_mute_audio`] = canvas.value.AudioMute
+			variables[`${canvasName}_mute_video`] = canvas.value.CutToBlack
+
+			this.module.setVariableValues(variables)
+		}
 	}
 
 	public async muteCanvasAudio(canvasName: CanvasNames, isMuted: boolean): Promise<void> {
@@ -145,14 +159,16 @@ export class Calico {
 
 		try {
 			await this.calicoAPI.SendREST(
-				new URL(`${this.module.config.httpMode}://${this.module.config.host}/api/v1/routing/canvases/${canvasName}`),
+				this.module.config.httpMode,
+				this.module.config.host,
+				`${CalicoAPI.canvasBaseApiPath}${canvasName}`,
 				'PUT',
 				JSON.stringify(body),
 			)
 
 			this.updateCanvasVariables(canvasName)
 
-			this.module.checkFeedbacks('canvasaudiomute')
+			//this.module.checkFeedbacks('canvasaudiomute')
 		} catch (err) {
 			if (err instanceof Error) {
 				this.module.log('error', `${err.message} [${err.cause}]`)
@@ -173,14 +189,16 @@ export class Calico {
 
 		try {
 			await this.calicoAPI.SendREST(
-				new URL(`${this.module.config.httpMode}://${this.module.config.host}/api/v1/routing/canvases/${canvasName}`),
+				this.module.config.httpMode,
+				this.module.config.host,
+				`${CalicoAPI.canvasBaseApiPath}${canvasName}`,
 				'PUT',
 				JSON.stringify(body),
 			)
 
 			this.updateCanvasVariables(canvasName)
 
-			this.module.checkFeedbacks('canvasvideomute')
+			//this.module.checkFeedbacks('canvasvideomute')
 		} catch (err) {
 			if (err instanceof Error) {
 				this.module.log('error', `${err.message} [${err.cause}]`)
@@ -193,9 +211,9 @@ export class Calico {
 	public async executePreset(presetNumber: number): Promise<void> {
 		try {
 			await this.calicoAPI.SendREST(
-				new URL(
-					`${this.module.config.httpMode}://${this.module.config.host}/api/v1/routing/Storyboards/Storyboard${presetNumber}/Take`,
-				),
+				this.module.config.httpMode,
+				this.module.config.host,
+				`${CalicoAPI.storyboardBaseApiPath}Storyboard${presetNumber}/Take`,
 				'POST',
 			)
 		} catch (err) {
@@ -215,10 +233,36 @@ export class Calico {
 
 		try {
 			await this.calicoAPI.SendREST(
-				new URL(`${this.module.config.httpMode}://${this.module.config.host}/api/v1/routing/windows/${window}`),
+				this.module.config.httpMode,
+				this.module.config.host,
+				`${CalicoAPI.windowBaseApiPath}${window}`,
 				'PUT',
 				JSON.stringify(body),
 			)
+		} catch (err) {
+			if (err instanceof Error) {
+				this.module.log('error', `${err.message} [${err.cause}]`)
+			} else {
+				this.module.log('error', `${err}]`)
+			}
+		}
+	}
+
+	public async genericPropertySet(resourceApiPath: string, body: string): Promise<void> {
+		try {
+			await this.calicoAPI.SendREST(this.module.config.httpMode, this.module.config.host, resourceApiPath, 'PUT', body)
+		} catch (err) {
+			if (err instanceof Error) {
+				this.module.log('error', `${err.message} [${err.cause}]`)
+			} else {
+				this.module.log('error', `${err}]`)
+			}
+		}
+	}
+
+	public async genericCommandExecute(resourceApiPath: string, body?: string): Promise<void> {
+		try {
+			await this.calicoAPI.SendREST(this.module.config.httpMode, this.module.config.host, resourceApiPath, 'POST', body)
 		} catch (err) {
 			if (err instanceof Error) {
 				this.module.log('error', `${err.message} [${err.cause}]`)
