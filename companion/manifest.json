@@ -1,7 +1,7 @@
 {
 	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
 	"id": "tvone-calico",
-	"name": "calico",
+	"name": "CALICO",
 	"shortname": "CALICO Control",
 	"description": "Basic control for tvONE CALICO products",
 	"version": "1.0.0",
@@ -22,6 +22,6 @@
 	},
 	"legacyIds": [],
 	"manufacturer": "tvONE",
-	"products": ["calico"],
+	"products": ["CALICO"],
 	"keywords": []
 }
